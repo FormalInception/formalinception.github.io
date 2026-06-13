@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FormalInception-ATP: 100% on miniF2F</title>
+  <meta name="description" content="FormalInception produces a machine-verified Lean proof for every problem in the miniF2F benchmark: a perfect 100%." />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="FormalInception-ATP: 100% on miniF2F" />
+  <meta property="og:description" content="Our pipeline solved all 244 problems, each proof checked by the Lean compiler." />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20width%3D%2264%22%20height%3D%2264%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20role%3D%22img%22%20aria-hidden%3D%22true%22%20shape-rendering%3D%22geometricPrecision%22%3E%3Crect%20x%3D%2216%22%20y%3D%2216%22%20width%3D%2268%22%20height%3D%2268%22%20rx%3D%223%22%20fill%3D%22none%22%20stroke%3D%22%231a1714%22%20stroke-width%3D%223.5%22%20opacity%3D%220.32%22/%3E%3Crect%20x%3D%2230%22%20y%3D%2230%22%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%222%22%20fill%3D%22%232747d6%22/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --paper: #fbfaf7;
+      --panel: #f4f1ea;
+      --ink: #1a1714;
+      --ink-2: #423d36;
+      --muted: #6e695f;
+      --line: #e7e3d9;
+      --line-strong: #d9d4c7;
+      --accent: #2747d6;
+      --accent-ink: #1d3aa8;
+      --ok: #1f7a4d;
+      --grid: rgba(26, 23, 20, 0.05);
+      --max: 720px;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Spectral", Georgia, serif;
+      font-size: 18px;
+      line-height: 1.72;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      position: relative;
+    }
+
+    /* faint graph-paper grid across the page — a nod to the math.
+       Strong at the margins, fading out behind the central text column. */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,0.10) 38%, rgba(0,0,0,0.10) 62%, #000 100%);
+              mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,0.10) 38%, rgba(0,0,0,0.10) 62%, #000 100%);
+      pointer-events: none;
+    }
+
+    .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 28px; }
+
+    .kicker {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 11.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* small caps for miniF2F */
+    .sc { font-variant: all-small-caps; letter-spacing: 0.03em; }
+
+    a { color: var(--accent); text-decoration: none; text-underline-offset: 3px;
+        text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+    a:hover { text-decoration: underline; }
+
+    /* ---------- top bar ---------- */
+    .topbar {
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--paper) 88%, transparent);
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: saturate(140%) blur(8px);
+    }
+    .topbar .row {
+      max-width: var(--max); margin: 0 auto; padding: 15px 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand .mark { width: 30px; height: 30px; display: grid; place-items: center; flex: none; }
+    .brand .mark svg { width: 28px; height: 28px; display: block; }
+    .brand .wm { display: flex; flex-direction: column; line-height: 1; }
+    .brand .wm .n { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+    .brand .wm .n b { font-weight: 600; }
+    .brand .wm .t { font-size: 9.5px; letter-spacing: 0.22em; color: var(--muted); margin-top: 5px; text-transform: uppercase; }
+
+    /* ---------- hero ---------- */
+    header.hero { padding: 92px 0 60px; position: relative; overflow: hidden; }
+    header.hero .wrap { position: relative; z-index: 1; }
+
+    .hero .eyebrow { margin: 0 0 22px; }
+
+    h1 {
+      font-family: "Spectral", Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(2.7rem, 7.4vw, 4.7rem);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+    }
+    h1 .score { color: var(--accent); font-weight: 500; font-style: italic; }
+
+    .lede {
+      font-size: clamp(1.12rem, 2.4vw, 1.4rem);
+      color: var(--ink-2);
+      max-width: 30em; margin: 0 0 44px; font-weight: 400;
+    }
+
+    /* ---------- stat strip ---------- */
+    .stats {
+      display: flex; flex-wrap: wrap;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .stat { flex: 1 1 0; min-width: 150px; padding: 22px 28px 22px 0; }
+    .stat + .stat { padding-left: 34px; border-left: 1px solid var(--line); }
+    .stat .num {
+      font-family: "Spectral", Georgia, serif; font-weight: 500;
+      font-size: 2.2rem; line-height: 1; letter-spacing: -0.015em;
+    }
+    .stat .num .slash { color: var(--muted); font-weight: 300; }
+    .stat .label {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted); margin-top: 11px;
+    }
+
+    /* ---------- main ---------- */
+    main { padding: 8px 0 24px; }
+    section { padding: 46px 0; border-bottom: 1px solid var(--line); }
+    section:last-child { border-bottom: none; }
+
+    .sec-head { display: flex; align-items: baseline; gap: 14px; margin: 0 0 22px; }
+    .sec-head .no {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 12px; color: var(--accent); letter-spacing: 0.1em; font-weight: 500;
+      flex: none; padding-top: 2px;
+    }
+    h2 { font-family: "Spectral", Georgia, serif; font-weight: 500; font-size: 1.5rem;
+         letter-spacing: -0.01em; margin: 0; }
+
+    p { margin: 0 0 20px; }
+    p:last-child { margin-bottom: 0; }
+    .lead-prose p { font-size: 1.06rem; color: var(--ink-2); }
+    .lead-prose p:first-child { font-size: 1.16rem; color: var(--ink); }
+
+    /* drop cap on the very first paragraph — editorial paper touch */
+    .lead-prose p:first-child::first-letter {
+      font-weight: 500; font-size: 3.1em; line-height: 0.82;
+      float: left; padding: 0.06em 0.12em 0 0; color: var(--accent);
+    }
+
+    /* ---------- CTA ---------- */
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 24px; border-radius: 8px; font-family: "IBM Plex Mono", monospace;
+      font-size: 13.5px; letter-spacing: 0.02em; font-weight: 500;
+      border: 1px solid var(--line-strong); color: var(--ink); white-space: nowrap;
+      transition: border-color .15s, background .15s, transform .15s, box-shadow .15s, color .15s;
+    }
+    .btn:hover { text-decoration: none; transform: translateY(-1px); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { box-shadow: 0 10px 26px -12px var(--accent); }
+    .btn .arrow { transition: transform .15s; }
+    .btn:hover .arrow { transform: translateX(3px); }
+
+    /* ---------- authors ---------- */
+    .authors { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
+               background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .author { background: var(--paper); padding: 20px 22px; transition: background .15s; }
+    .author:hover { background: var(--panel); }
+    .author .name { font-weight: 500; font-size: 1.12rem; margin-bottom: 10px; letter-spacing: -0.005em; }
+    .author .links { display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+                     font-family: "IBM Plex Mono", monospace; font-size: 12px; }
+    .author .links a { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+    .author .links a:hover { color: var(--accent); }
+    .author .links svg { width: 13px; height: 13px; flex: none; }
+    .author.empty { pointer-events: none; }
+    @media (max-width: 560px) {
+      .authors { grid-template-columns: 1fr; }
+      .author.empty { display: none; }
+    }
+
+    /* ---------- citation ---------- */
+    .cite-wrap { position: relative; }
+    .cite {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      padding: 24px 26px; font-family: "IBM Plex Mono", monospace; font-size: 12.5px;
+      line-height: 1.85; color: var(--ink-2); overflow-x: auto; white-space: pre;
+    }
+    .cite .k { color: var(--accent); }
+    .copy {
+      position: absolute; top: 14px; right: 14px; padding: 7px 13px;
+      font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--muted);
+      background: var(--paper); border: 1px solid var(--line-strong); border-radius: 7px;
+      cursor: pointer; transition: color .15s, border-color .15s;
+    }
+    .copy:hover { color: var(--ink); border-color: var(--accent); }
+    .disclaimer { margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.7; }
+    .disclaimer strong { color: var(--ink-2); font-weight: 500; }
+    .disclaimer:target { color: var(--ink-2); }
+    .fnote { font-size: 0.72em; vertical-align: super; line-height: 0; margin-left: 1px; font-weight: 500; }
+
+    @media (max-width: 560px) {
+      header.hero { padding: 64px 0 48px; }
+      .stat { flex-basis: 100%; padding: 18px 0; }
+      .stat + .stat { padding-left: 0; border-left: none; border-top: 1px solid var(--line); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="row">
+      <a class="brand" href="/" aria-label="FormalInception home" style="color:inherit">
+        <span class="mark">
+          <!-- QED mark: thin outer keyline (the "statement") + solid inner square (the "proof"). -->
+          <svg viewBox="0 0 100 100" width="28" height="28" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" shape-rendering="geometricPrecision">
+            <rect x="16" y="16" width="68" height="68" rx="3" fill="none" stroke="#1a1714" stroke-width="3.5" opacity="0.32"/>
+            <rect x="30" y="30" width="40" height="40" rx="2" fill="#2747d6"/>
+          </svg>
+        </span>
+        <span class="wm">
+          <span class="n">Formal<b>Inception</b></span>
+          <span class="t mono">Automated Theorem Proving</span>
+        </span>
+      </a>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="kicker eyebrow">Benchmark result · June 2026</p>
+      <h1><span class="score">100%</span> on <span class="sc">mini</span>F2F</h1>
+      <p class="lede">Our pipeline solved all 244 problems, with every proof checked by the Lean&nbsp;4 compiler.<a class="fnote" href="#disclaimer" aria-label="See disclaimer">*</a></p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="num">244<span class="slash"> / </span>244</div>
+          <div class="label">Problems closed</div>
+        </div>
+        <div class="stat">
+          <div class="num">$86.56<a class="fnote" href="#disclaimer" aria-label="See disclaimer">*</a></div>
+          <div class="label">Total cost</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <div class="lead-prose">
+        <p>
+          FormalInception-ATP is an agent system built for automated theorem proving. We ran it over the
+          <a href="https://github.com/google-deepmind/miniF2F"><span class="sc">mini</span>F2F</a>
+          benchmark and it closed every one of the 244 problems, with each proof checked by the
+          Lean&nbsp;4 compiler.<a class="fnote" href="#disclaimer" aria-label="See disclaimer">*</a> As far as we know, nobody has reported a perfect score on this set before.
+        </p>
+        <p>
+          Each problem was given to the prover with only its informal and formal statements as input. The
+          system relies solely on the Lean compiler,
+          <a href="https://github.com/leanprover-community/mathlib4">Mathlib</a> search, and deterministic
+          tactic search. It has no access to the web. We used
+          <a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-5/">Gemini&nbsp;3.5&nbsp;Flash</a>
+          and
+          <a href="https://deepmind.google/blog/gemini-3-flash-frontier-intelligence-built-for-speed/">Gemini&nbsp;3&nbsp;Flash</a>
+          as the underlying models.
+        </p>
+        <p>
+          Every proof was checked with
+          <a href="https://github.com/leanprover/comparator">Comparator</a> on <a href="https://lean-lang.org/doc/reference/latest/releases/v4.29.0/#release-v4___29___0">Lean&nbsp;4.29.0</a>,
+          and all of them passed. The full set of proofs is below, together with a script that
+          reproduces the verification, so anyone can re-run it and confirm the claim for themselves.
+        </p>
+        <p style="color:var(--muted)">
+          We plan to open-source the pipeline soon, and will write up how it works in more detail shortly after.
+        </p>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/FormalInception/FormalInception.github.io/">View the solutions <span class="arrow">→</span></a>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head"><span class="no mono">01</span><h2>Authors</h2></div>
+      <div class="authors">
+        <div class="author">
+          <div class="name">Mateusz Miraszewski</div>
+          <div class="links">
+            <a href="mailto:mateusz.miraszewski@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>mateusz.miraszewski@gmail.com</a>
+            <a href="https://www.linkedin.com/in/mateusz-miraszewski/"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.64h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9V9Z"/></svg>mateusz-miraszewski</a>
+          </div>
+        </div>
+        <div class="author">
+          <div class="name">Marcin Rolbiecki</div>
+          <div class="links">
+            <a href="mailto:rolbieckidev@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>rolbieckidev@gmail.com</a>
+            <a href="https://www.linkedin.com/in/mrolbiecki"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.64h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9V9Z"/></svg>mrolbiecki</a>
+          </div>
+        </div>
+        <div class="author">
+          <div class="name">Mateusz Kowalski</div>
+          <div class="links">
+            <a href="mailto:mat.kdev@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>mat.kdev@gmail.com</a>
+            <a href="https://www.linkedin.com/in/matiszach/"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.64h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9V9Z"/></svg>matiszach</a>
+          </div>
+        </div>
+        <div class="author">
+          <div class="name">Hubert Wasilewski</div>
+          <div class="links">
+            <a href="mailto:hubert.wasilewski@protonmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>hubert.wasilewski@protonmail.com</a>
+            <a href="https://www.linkedin.com/in/hubert-wasilewski-533b342b8/"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.64h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9V9Z"/></svg>hubert-wasilewski</a>
+          </div>
+        </div>
+        <div class="author">
+          <div class="name">Grzegorz Juszczyk</div>
+          <div class="links">
+            <a href="mailto:gkjuszczyk@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>gkjuszczyk@gmail.com</a>
+            <a href="https://www.linkedin.com/in/grzegorz-juszczyk-403a65370/"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.64h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9V9Z"/></svg>grzegorz-juszczyk</a>
+          </div>
+        </div>
+        <div class="author empty" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head"><span class="no mono">02</span><h2>Cite this result</h2></div>
+      <div class="cite-wrap">
+        <button class="copy" type="button" onclick="copyCite(this)">Copy</button>
+        <div class="cite" id="bibtex"><span class="k">@misc</span>{formalinception2026minif2f,
+    title = {FormalInception-ATP: 100% on miniF2F},
+    url = {https://formalinception.github.io/},
+    author = {Mateusz Miraszewski and Marcin Rolbiecki and Mateusz Kowalski and Hubert Wasilewski and Grzegorz Juszczyk},
+    month = {June},
+    year = {2026}
+}</div>
+      </div>
+      <p class="disclaimer" id="disclaimer"><strong>* Disclaimer:</strong> The 244/244 result was not obtained in a single run of the system. Due to a limited compute budget, it is the union of several runs with different agent settings. Cost is at Google Cloud flex pricing.</p>
+    </section>
+  </main>
+
+  <script>
+    function copyCite(btn) {
+      var text = document.getElementById('bibtex').innerText;
+      navigator.clipboard.writeText(text).then(function () {
+        var prev = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = prev; }, 1600);
+      });
+    }
+  </script>
+</body>
+</html>
