@@ -1,7 +1,7 @@
 # FormalInception-ATP
 
 244 Lean 4 proofs for [miniF2F](https://github.com/google-deepmind/miniF2F),
-packaged as an encrypted archive: `solutions.7z`, password `123`.
+packaged as an encrypted archive: `solutions.7z`, password `rkNE8nBuZyy2Nix7JED9JoUjvehPenS3`.
 
 ## Verifying
 
